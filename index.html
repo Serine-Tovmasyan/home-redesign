@@ -174,15 +174,6 @@
       </defs>
     </svg>
 
-    <!-- concept switcher -->
-    <div class="fixed left-1/2 top-4 z-[70] flex -translate-x-1/2 items-center gap-1 rounded-full border border-ink/15 bg-white/75 p-1 backdrop-blur">
-      <a href="home-cold.html"    class="rounded-full px-3 py-1 text-[11px] font-semibold text-inksoft hover:text-ink">1</a>
-      <a href="home-warm.html"    class="rounded-full px-3 py-1 text-[11px] font-semibold text-inksoft hover:text-ink">2</a>
-      <a href="home-hot.html"     class="rounded-full px-3 py-1 text-[11px] font-semibold text-inksoft hover:text-ink">3</a>
-      <a href="home-atelier.html" class="rounded-full px-3 py-1 text-[11px] font-semibold text-inksoft hover:text-ink">4</a>
-      <a href="home-polar.html"   class="rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">5</a>
-    </div>
-
     <!-- ============================================================ NAV -->
     <header id="nav" class="fixed inset-x-0 top-0 z-50 text-white transition-colors duration-500">
       <div class="mx-auto flex max-w-[1340px] items-center justify-between px-8 py-7">
@@ -206,8 +197,8 @@
             <iframe src="hero-polar-globe.html?embed=1&v=4" title="Movato — global network" loading="lazy"
               class="absolute inset-0 h-full w-full border-0"></iframe>
           </div>
-          <!-- hero CTA in the upper area (above the title, covered by the rising clouds) -->
-          <div class="pointer-events-none absolute inset-x-0 top-[20%] z-20 flex justify-center">
+          <!-- hero CTA in the lower area (covered by the rising clouds) -->
+          <div class="pointer-events-none absolute inset-x-0 bottom-[24%] z-20 flex justify-center">
             <a href="#cta" class="hero-fade pointer-events-auto glass rounded-full px-9 py-4 text-[11px] font-medium uppercase tw text-white transition hover:bg-white/20">Начать бесплатно →</a>
           </div>
           <!-- shops logos at the bottom of the hero (behind the clouds, so the rising clouds cover it) -->
@@ -232,12 +223,12 @@
           <!-- far/slow billow -->
           <div id="cloudBack" class="pointer-events-none absolute inset-x-0 top-full z-[29] will-change-transform" style="opacity:0">
             <img class="block w-full -mb-px" src="images/cloud-2-full.png" alt="" style="filter:blur(2px)" />
-            <div class="bg-white" style="height:110vh"></div>
+            <div style="height:110vh;background:#fff"></div>
           </div>
           <!-- near/fast billow -->
           <div id="cloudFront" class="pointer-events-none absolute inset-x-0 top-full z-[30] will-change-transform" style="opacity:0">
             <img class="block w-full -mb-px" src="images/cloud-2-full.png" alt="" />
-            <div class="bg-white" style="height:110vh"></div>
+            <div style="height:110vh;background:#fff"></div>
           </div>
         </div>
       </section>
@@ -450,7 +441,7 @@
             <!-- BANNER 1 -->
             <div class="hpanel hpanel--sm grid place-items-center bg-ink">
               <div class="relative h-[72vh] w-[64vw] overflow-hidden rounded-2xl">
-                <img src="https://asset.movato.com/images/get_address.image.png" class="absolute inset-0 h-full w-full object-cover" alt="" />
+                <img src="https://asset.movato.com/images/landing-delivery.png" class="absolute inset-0 h-full w-full object-cover" alt="" />
                 <div class="absolute inset-0 bg-gradient-to-r from-ink/65 via-ink/20 to-transparent"></div>
                 <div class="absolute inset-0 flex flex-col justify-center px-10 text-white md:px-14">
                   <div class="max-w-md">
@@ -465,7 +456,7 @@
             <!-- BANNER 2 -->
             <div class="hpanel hpanel--sm grid place-items-center bg-ink">
               <div class="relative h-[72vh] w-[64vw] overflow-hidden rounded-2xl">
-                <img src="https://asset.movato.com/images/contacts.social.image.png" class="absolute inset-0 h-full w-full object-cover" alt="" />
+                <img src="https://asset.movato.com/images/landing-delivery.png" class="absolute inset-0 h-full w-full object-cover" alt="" />
                 <div class="absolute inset-0 bg-gradient-to-r from-ink/65 via-ink/20 to-transparent"></div>
                 <div class="absolute inset-0 flex flex-col justify-center px-10 text-white md:px-14">
                   <div class="max-w-md">
@@ -480,7 +471,7 @@
             <!-- BANNER 3 -->
             <div class="hpanel hpanel--sm grid place-items-center bg-ink">
               <div class="relative h-[72vh] w-[64vw] overflow-hidden rounded-2xl">
-                <img src="https://asset.movato.com/images/buyforme.steps_guide_video_image.png" class="absolute inset-0 h-full w-full object-cover" alt="" />
+                <img src="https://asset.movato.com/images/landing-delivery.png" class="absolute inset-0 h-full w-full object-cover" alt="" />
                 <div class="absolute inset-0 bg-gradient-to-r from-ink/65 via-ink/20 to-transparent"></div>
                 <div class="absolute inset-0 flex flex-col justify-center px-10 text-white md:px-14">
                   <div class="max-w-md">
