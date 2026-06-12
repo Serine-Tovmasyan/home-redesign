@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Movato — Покупайте по всему миру с доставкой</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Hanken+Grotesk:wght@300;400;500;600&display=swap"
+      rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+              sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              ice:   '#eef3f5',
+              paper: '#f6f9fa',
+              ink:   '#1e2945',
+              inksoft: '#5b6678',
+              frost: '#6af0ff',
+              brand: '#00bed5',
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      :root {
+        --out:   cubic-bezier(.16, 1, .3, 1);
+        --inout: cubic-bezier(.76, 0, .24, 1);
+      }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: '"Hanken Grotesk"', system-ui, sans-serif;
+        color: #1e2945;
+        background: #f6f9fa;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      .display { font-family: '"Cormorant Garamond"', Georgia, serif; }
+      .tw { letter-spacing: .26em; }
+
+      /* ---------- HERO: blurred title un-blur ---------- */
+      @keyframes deblur {
+        0%   { filter: blur(14px); opacity: 0; transform: translateY(14px); letter-spacing: .08em; }
+        100% { filter: blur(0);    opacity: 1; transform: none;             letter-spacing: 0; }
+      }
+      .hero-title { animation: deblur 2.2s var(--out) .35s both; }
+
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+      .hero-fade { animation: fadeUp 1.4s var(--out) 1s both; }
+
+      /* ---------- mist / cloud transition ---------- */
+      .mist {
+        position: absolute; left: 0; right: 0; pointer-events: none; z-index: 6;
+        height: 38vh; background-size: cover; background-position: center;
+        background-image: radial-gradient(120% 90% at 50% 50%, #ffffff 0%, rgba(255,255,255,.85) 32%, rgba(246,249,250,0) 72%);
+        will-change: transform, opacity;
+      }
+      .mist--top    { top: -1px;    background-image: radial-gradient(120% 100% at 50% 0%,   #f6f9fa 0%, rgba(246,249,250,.9) 38%, rgba(246,249,250,0) 80%); }
+      .mist--bottom { bottom: -1px; background-image: radial-gradient(120% 100% at 50% 100%, #f6f9fa 0%, rgba(246,249,250,.9) 38%, rgba(246,249,250,0) 80%); }
+
+      /* clouds: feather edges + blur so the layers read as fog, not pasted PNG sprites */
+      .clouds-back, .clouds-front {
+        opacity: 0;
+        -webkit-mask-image: linear-gradient(to top, #000 0%, #000 22%, rgba(0,0,0,.6) 55%, transparent 96%);
+                mask-image: linear-gradient(to top, #000 0%, #000 22%, rgba(0,0,0,.6) 55%, transparent 96%);
+      }
+      .clouds-front { filter: blur(2px); }
+      .clouds-back  { filter: blur(8px); transform-origin: bottom; }
+
+      /* pricing estimator */
+      input[type=range] { accent-color: #00bed5; }
+      .calc-chip { border:1px solid rgba(30,41,69,.18); border-radius:999px; padding:.5rem 1rem; font-size:12px; font-weight:500; color:#5b6678; cursor:pointer; transition:all .2s; }
+      .calc-chip:hover { border-color:#00bed5; color:#1e2945; }
+      .calc-chip.on { background:#1e2945; border-color:#1e2945; color:#fff; }
+
+      /* ---------- reveal ---------- */
+      .reveal { opacity: 0; transform: translateY(42px); transition: opacity 1.1s var(--out), transform 1.1s var(--out); }
+      .reveal.in { opacity: 1; transform: none; }
+      .reveal[data-d="1"]{transition-delay:.12s}.reveal[data-d="2"]{transition-delay:.24s}.reveal[data-d="3"]{transition-delay:.36s}
+
+      /* ---------- text scroll-fade (mask sweep) ---------- */
+      .text-fade {
+        -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 var(--m,0%), rgba(0,0,0,.12) calc(var(--m,0%) + 18%), rgba(0,0,0,.12) 100%);
+                mask-image: linear-gradient(90deg, #000 0%, #000 var(--m,0%), rgba(0,0,0,.12) calc(var(--m,0%) + 18%), rgba(0,0,0,.12) 100%);
+      }
+
+      /* ---------- scribble draw-on ---------- */
+      .scribble path { stroke-dasharray: var(--len, 1200) ; stroke-dashoffset: var(--len, 1200); transition: stroke-dashoffset 1.6s var(--out); fill: none; }
+      .scribble.in path { stroke-dashoffset: 0; }
+
+      /* ---------- clip wipe ---------- */
+      .clip { clip-path: inset(0 100% 0 0); transition: clip-path 1.3s var(--inout); }
+      .clip.in { clip-path: inset(0); }
+
+      /* ---------- parallax frame ---------- */
+      .px { position: relative; overflow: hidden; }
+      .px > img { position: absolute; inset: -14% 0; width: 100%; height: 128%; object-fit: cover; will-change: transform; }
+
+      /* ---------- liquid glass ---------- */
+      .glass { position: relative; isolation: isolate; overflow: hidden; border-radius: 20px;
+        background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.35);
+        box-shadow: 0 8px 40px rgba(20,30,50,.18), inset 0 1px 0 rgba(255,255,255,.55); backdrop-filter: blur(14px); }
+      .glass::before { content:''; position:absolute; inset:0; z-index:-1; backdrop-filter: blur(2px); filter: url(#glassDistort); border-radius: inherit; }
+      .glass::after  { content:''; position:absolute; inset:0; border-radius: inherit; pointer-events:none;
+        background: linear-gradient(130deg, rgba(255,255,255,.5), transparent 38%, transparent 62%, rgba(255,255,255,.28)); mix-blend-mode: screen; }
+
+      /* ---------- card-flick ---------- */
+      .flick { display: flex; height: 90vh; gap: 6px; }
+      .flick-item { position: relative; flex: 0 0 auto; width: 12.5%; overflow: hidden; cursor: pointer;
+        transition: width 1s var(--inout); border-radius: 4px; }
+      .flick-item.active { width: 50%; }
+      .flick-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--out), filter .8s var(--out); transform: scale(1.06); }
+      .flick-item.active img { transform: scale(1); }
+      .flick-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,22,40,.05), rgba(15,22,40,.62)); transition: opacity .8s; }
+      .flick-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 2.2rem; color: #fff; opacity: 0; transition: opacity .7s var(--out) .15s; }
+      .flick-item.active .flick-content { opacity: 1; }
+      .flick-item:not(.active) .flick-label { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%) rotate(180deg); writing-mode: vertical-rl; white-space: nowrap; color: #fff; opacity: .9; }
+      .flick-item.active .flick-label { display: none; }
+
+      /* ---------- horizontal pinned scroll ---------- */
+      .hwrap { position: relative; }
+      .hsticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+      .htrack { display: flex; height: 100vh; will-change: transform; }
+      .hpanel { position: relative; flex: 0 0 100vw; height: 100vh; overflow: hidden; }
+      .hpanel--sm { flex-basis: 70vw; }
+
+      /* ---------- flight path globe ---------- */
+      .globe-card { will-change: transform; }
+
+      /* ---------- flyout ---------- */
+      .flyout { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 92vw); z-index: 60;
+        transform: translateX(100%); transition: transform .9s var(--inout); }
+      .flyout.open { transform: none; }
+      .flyout-tab { position: fixed; top: 50%; right: 0; z-index: 61; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl; }
+      .flyout-overlay { position: fixed; inset: 0; z-index: 59; background: rgba(20,30,50,.4); opacity: 0; pointer-events: none; transition: opacity .6s; backdrop-filter: blur(2px); }
+      .flyout-overlay.show { opacity: 1; pointer-events: auto; }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; }
+        .reveal { opacity: 1; transform: none; }
+        .clip { clip-path: none; }
+        .scribble path { stroke-dashoffset: 0; }
+        .text-fade { -webkit-mask-image: none; mask-image: none; }
+      }
+      @media (max-width: 860px) {
+        .flick { flex-direction: column; height: auto; }
+        .flick-item, .flick-item.active { width: 100%; height: 52vh; }
+        .flick-item:not(.active) .flick-label { writing-mode: horizontal-tb; transform: translateX(-50%); bottom: 1.4rem; }
+        .flick-content { opacity: 1; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- shared SVG filters -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs>
+        <filter id="glassDistort" x="0%" y="0%" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
+          <feGaussianBlur in="noise" stdDeviation="2" result="blur" />
+          <feDisplacementMap in="SourceGraphic" in2="blur" scale="36" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- concept switcher -->
+    <div class="fixed left-1/2 top-4 z-[70] flex -translate-x-1/2 items-center gap-1 rounded-full border border-ink/15 bg-white/75 p-1 backdrop-blur">
+      <a href="home-cold.html"    class="rounded-full px-3 py-1 text-[11px] font-semibold text-inksoft hover:text-ink">1</a>
+      <a href="home-warm.html"    class="rounded-full px-3 py-1 text-[11px] font-semibold text-inksoft hover:text-ink">2</a>
+      <a href="home-hot.html"     class="rounded-full px-3 py-1 text-[11px] font-semibold text-inksoft hover:text-ink">3</a>
+      <a href="home-atelier.html" class="rounded-full px-3 py-1 text-[11px] font-semibold text-inksoft hover:text-ink">4</a>
+      <a href="home-polar.html"   class="rounded-full bg-ink px-3 py-1 text-[11px] font-semibold text-white">5</a>
+    </div>
+
+    <!-- ============================================================ NAV -->
+    <header id="nav" class="fixed inset-x-0 top-0 z-50 text-white transition-colors duration-500">
+      <div class="mx-auto flex max-w-[1340px] items-center justify-between px-8 py-7">
+        <a href="#" class="display text-3xl tracking-wide">Movato</a>
+        <nav class="hidden gap-10 text-[11px] font-medium uppercase tw md:flex">
+          <a href="#plans"   class="opacity-80 transition hover:opacity-100">Услуги</a>
+          <a href="#service" class="opacity-80 transition hover:opacity-100">Тарифы</a>
+          <a href="#network" class="opacity-80 transition hover:opacity-100">Акции</a>
+          <a href="#route"   class="opacity-80 transition hover:opacity-100">Маршрут</a>
+        </nav>
+        <a href="#cta" class="border border-white/55 px-6 py-2.5 text-[10px] font-medium uppercase tw transition hover:bg-white hover:text-ink">Войти</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- ===================================================== HERO — GLOBE ANIMATION (Concept 1 · Animation 2) -->
+      <section id="heroSection" class="relative z-10 bg-[#05080f] text-white" style="height:136vh">
+        <!-- sticky pin: hero stays in view while you scroll the extra height; clouds rise OVER it gradually -->
+        <div id="heroPin" class="sticky top-0 h-screen overflow-hidden">
+          <div class="absolute inset-0 overflow-hidden">
+            <iframe src="hero-polar-globe.html?embed=1&v=4" title="Movato — global network" loading="lazy"
+              class="absolute inset-0 h-full w-full border-0"></iframe>
+          </div>
+          <!-- hero CTA in the upper area (above the title, covered by the rising clouds) -->
+          <div class="pointer-events-none absolute inset-x-0 top-[20%] z-20 flex justify-center">
+            <a href="#cta" class="hero-fade pointer-events-auto glass rounded-full px-9 py-4 text-[11px] font-medium uppercase tw text-white transition hover:bg-white/20">Начать бесплатно →</a>
+          </div>
+          <!-- shops logos at the bottom of the hero (behind the clouds, so the rising clouds cover it) -->
+          <div class="pointer-events-none absolute inset-x-0 bottom-0 z-20 pb-8">
+            <p class="mb-4 text-center text-[10px] font-medium uppercase tw text-white/50">Покупайте в 1000+ магазинах мира</p>
+            <div class="flex flex-wrap items-center justify-center gap-x-9 gap-y-4 px-8 opacity-70">
+              <img src="https://cdn.simpleicons.org/apple/white" alt="Apple" class="h-5 w-auto" />
+              <img src="https://cdn.simpleicons.org/nike/white" alt="Nike" class="h-4 w-auto" />
+              <img src="https://cdn.simpleicons.org/adidas/white" alt="Adidas" class="h-5 w-auto" />
+              <img src="https://cdn.simpleicons.org/ebay/white" alt="eBay" class="h-5 w-auto" />
+              <img src="https://cdn.simpleicons.org/zara/white" alt="Zara" class="h-4 w-auto" />
+              <img src="https://cdn.simpleicons.org/etsy/white" alt="Etsy" class="h-5 w-auto" />
+              <img src="https://cdn.simpleicons.org/ikea/white" alt="IKEA" class="h-4 w-auto" />
+              <img src="https://cdn.simpleicons.org/aliexpress/white" alt="AliExpress" class="h-5 w-auto" />
+              <img src="https://cdn.simpleicons.org/zalando/white" alt="Zalando" class="h-4 w-auto" />
+              <img src="https://cdn.simpleicons.org/samsung/white" alt="Samsung" class="h-4 w-auto" />
+            </div>
+          </div>
+          <!-- White Desert cloud transition. cloud-2-full.png is a cloudy top fading to SOLID WHITE at its base,
+               so it IS a white mass with a natural cloudy fringe. A white block extends its white base seamlessly.
+               Two layers rise at different speeds for natural billowing depth — both white-backed, so no grey band. -->
+          <!-- far/slow billow -->
+          <div id="cloudBack" class="pointer-events-none absolute inset-x-0 top-full z-[29] will-change-transform" style="opacity:0">
+            <img class="block w-full -mb-px" src="images/cloud-2-full.png" alt="" style="filter:blur(2px)" />
+            <div class="bg-white" style="height:110vh"></div>
+          </div>
+          <!-- near/fast billow -->
+          <div id="cloudFront" class="pointer-events-none absolute inset-x-0 top-full z-[30] will-change-transform" style="opacity:0">
+            <img class="block w-full -mb-px" src="images/cloud-2-full.png" alt="" />
+            <div class="bg-white" style="height:110vh"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================== INTRO / TRUST -->
+      <section class="relative bg-white py-24">
+        <div class="mx-auto max-w-[1340px] px-8">
+          <!-- statement -->
+          <div class="mx-auto max-w-2xl text-center">
+            <h2 class="reveal display text-4xl font-light italic text-ink md:text-5xl">Нам доверяют по всему миру</h2>
+            <p class="reveal mt-5 text-[11px] font-medium uppercase tw text-inksoft" data-d="1">Застраховано и отслеживается — от полки до двери</p>
+          </div>
+
+          <!-- trust stats -->
+          <div class="mt-16 grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-4">
+            <div class="reveal text-center"><p class="display text-5xl font-light text-ink md:text-6xl">1.8M<span class="text-brand">+</span></p><p class="mt-3 text-[11px] font-medium uppercase tw text-inksoft">Посылок доставлено</p></div>
+            <div class="reveal text-center" data-d="1"><p class="display text-5xl font-light text-ink md:text-6xl">320K<span class="text-brand">+</span></p><p class="mt-3 text-[11px] font-medium uppercase tw text-inksoft">Клиентов</p></div>
+            <div class="reveal text-center" data-d="2"><p class="display text-5xl font-light text-ink md:text-6xl">99.7<span class="text-brand">%</span></p><p class="mt-3 text-[11px] font-medium uppercase tw text-inksoft">Доставка вовремя</p></div>
+            <div class="reveal text-center" data-d="3"><p class="display text-5xl font-light text-ink md:text-6xl">4.9<span class="text-brand">★</span></p><p class="mt-3 text-[11px] font-medium uppercase tw text-inksoft">Средняя оценка</p></div>
+          </div>
+
+          <!-- trust badges -->
+          <div class="reveal mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-center text-[11px] font-medium uppercase tw text-inksoft" data-d="2">
+            <span>Полная страховка</span>
+            <span class="text-brand/50">◆</span>
+            <span>Бесплатное хранение 45 дней</span>
+            <span class="text-brand/50">◆</span>
+            <span>Растаможим за вас</span>
+            <span class="text-brand/50">◆</span>
+            <span>Отслеживание на каждом шаге</span>
+          </div>
+        </div>
+      </section>
+
+
+
+      <!-- ===================================================== PLANS — CARD FLICK -->
+      <section id="plans" class="relative bg-paper py-28">
+        <div class="mist mist--top"></div>
+        <div class="mb-16 flex flex-col items-center">
+          <div class="relative">
+            <h2 class="display text-4xl font-light text-ink md:text-5xl">Наши услуги</h2>
+            <svg class="scribble absolute -bottom-5 left-1/2 w-[300px] -translate-x-1/2" viewBox="0 0 496 90" fill="none" style="--len:1540">
+              <path d="M164 78C113.9 60.6 4.2 22.2 35 16.6 65.7 11 200.5 25.3 278.6 36.7c78.2 11.3 95.6 19.3 39.9 15.6C262.9 48.7 133.7 33.3 153.3 38.1c19.7 4.9 192 30.5 278.4 42.6 86.3 12.1 81.2 9.9 6.3 1.8C363 74.4 218.6 60.4 140.6 52.1 62.6 43.8 55.5 41.7 49.7 39.6 33 33.6 23.7 22.8 16.7 12.2 15 9.9 13 8 10.2 6.1 7.5 4.1 3.9 2.2.25.25" stroke="#1e2945" stroke-width="0.7" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="mx-auto max-w-[1340px] px-6">
+          <div class="flick" id="flick">
+            <!-- 1 active -->
+            <article class="flick-item active" data-flick>
+              <img src="https://asset.movato.com/images/buyforme-guide-cy.webp" alt="" />
+              <div class="flick-overlay"></div>
+              <span class="flick-label display text-2xl italic">Купим за вас</span>
+              <div class="flick-content">
+                <h3 class="display text-4xl italic">Купим за вас</h3>
+                <div class="mt-3 flex items-center gap-3 text-[11px] font-medium uppercase tw text-white/80"><span>Оплата в местной валюте</span></div>
+                <p class="mt-4 max-w-lg text-sm font-light text-white/85">Карта не работает за границей? Пришлите ссылку — купим и доставим.</p>
+                <a href="#cta" class="mt-5 inline-block border-b border-white/70 pb-1 text-[10px] font-medium uppercase tw">Подробнее</a>
+              </div>
+            </article>
+            <!-- 2 -->
+            <article class="flick-item" data-flick>
+              <img src="https://asset.movato.com/images/buyforme-guide-cy.webp" alt="" />
+              <div class="flick-overlay"></div>
+              <span class="flick-label display text-2xl italic">Упаковка</span>
+              <div class="flick-content">
+                <h3 class="display text-3xl italic">Упаковка</h3>
+                <div class="mt-3 flex items-center gap-3 text-[11px] font-medium uppercase tw text-white/80"><span>Доп. защита</span></div>
+                <p class="mt-4 max-w-md text-sm font-light text-white/85">Хрупкое или ценное? Переупакуем для безопасной доставки.</p>
+                <a href="#cta" class="mt-5 inline-block border-b border-white/70 pb-1 text-[10px] font-medium uppercase tw">Подробнее</a>
+              </div>
+            </article>
+            <!-- 3 -->
+            <article class="flick-item" data-flick>
+              <img src="https://asset.movato.com/images/buyforme-guide-cy.webp" alt="" />
+              <div class="flick-overlay"></div>
+              <span class="flick-label display text-2xl italic">Проверка посылки</span>
+              <div class="flick-content">
+                <h3 class="display text-3xl italic">Проверка посылки</h3>
+                <div class="mt-3 flex items-center gap-3 text-[11px] font-medium uppercase tw text-white/80"><span>Фотоотчёт</span></div>
+                <p class="mt-4 max-w-md text-sm font-light text-white/85">We open, inspect and photograph every parcel so you see exactly what arrived.</p>
+                <a href="#cta" class="mt-5 inline-block border-b border-white/70 pb-1 text-[10px] font-medium uppercase tw">Подробнее</a>
+              </div>
+            </article>
+            <!-- 4 -->
+            <article class="flick-item" data-flick>
+              <img src="https://asset.movato.com/images/buyforme-guide-cy.webp" alt="" />
+              <div class="flick-overlay"></div>
+              <span class="flick-label display text-2xl italic">Объединение</span>
+              <div class="flick-content">
+                <h3 class="display text-3xl italic">Объединение</h3>
+                <div class="mt-3 flex items-center gap-3 text-[11px] font-medium uppercase tw text-white/80"><span>Экономия до 60%</span></div>
+                <p class="mt-4 max-w-md text-sm font-light text-white/85">We merge all your parcels into one box — cutting shipping weight and cost.</p>
+                <a href="#cta" class="mt-5 inline-block border-b border-white/70 pb-1 text-[10px] font-medium uppercase tw">Подробнее</a>
+              </div>
+            </article>
+            <!-- 5 -->
+            <article class="flick-item" data-flick>
+              <img src="https://asset.movato.com/images/buyforme-guide-cy.webp" alt="" />
+              <div class="flick-overlay"></div>
+              <span class="flick-label display text-2xl italic">Возврат</span>
+              <div class="flick-content">
+                <h3 class="display text-3xl italic">Возврат</h3>
+                <div class="mt-3 flex items-center gap-3 text-[11px] font-medium uppercase tw text-white/80"><span>Без хлопот</span></div>
+                <p class="mt-4 max-w-md text-sm font-light text-white/85">Передумали? Вернём товар в магазин за вас.</p>
+                <a href="#cta" class="mt-5 inline-block border-b border-white/70 pb-1 text-[10px] font-medium uppercase tw">Подробнее</a>
+              </div>
+            </article>
+          </div>
+          <p class="mt-6 text-center text-[10px] font-medium uppercase tw text-inksoft md:hidden">Нажмите на карточку</p>
+        </div>
+      </section>
+
+      <!-- ===================================================== STEPS / HOW IT WORKS (from Concept 2, polar-styled) -->
+      <section id="how" class="relative bg-paper py-28">
+        <div class="mist mist--top"></div>
+        <div class="mx-auto max-w-[1340px] px-8">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="reveal text-[11px] font-medium uppercase tw text-inksoft">Как это работает</p>
+            <h2 class="reveal display mt-4 text-4xl font-light text-ink md:text-5xl" data-d="1">Четыре простых шага</h2>
+            <p class="reveal mt-5 font-light leading-relaxed text-inksoft" data-d="2">Настройте один раз — покупайте где угодно.</p>
+          </div>
+          <div class="relative mt-16 grid gap-12 md:grid-cols-4 md:gap-8">
+            <div class="absolute left-[12%] right-[12%] top-7 hidden border-t border-dashed border-ink/20 md:block"></div>
+            <div class="reveal relative z-10 flex flex-col items-center text-center">
+              <div class="grid size-14 place-items-center rounded-full border border-brand/40 bg-white shadow-sm"><span class="display text-2xl text-ink">01</span></div>
+              <h3 class="display mt-5 text-2xl text-ink">Создайте аккаунт</h3>
+              <p class="mt-2 max-w-[16rem] text-sm font-light text-inksoft">Бесплатная регистрация за пару минут. Без подписки.</p>
+            </div>
+            <div class="reveal relative z-10 flex flex-col items-center text-center" data-d="1">
+              <div class="grid size-14 place-items-center rounded-full border border-brand/40 bg-white shadow-sm"><span class="display text-2xl text-ink">02</span></div>
+              <h3 class="display mt-5 text-2xl text-ink">Получите адрес</h3>
+              <p class="mt-2 max-w-[16rem] text-sm font-light text-inksoft">Личные адреса в США, Великобритании, Германии, Китае и на Кипре.</p>
+            </div>
+            <div class="reveal relative z-10 flex flex-col items-center text-center" data-d="2">
+              <div class="grid size-14 place-items-center rounded-full border border-brand/40 bg-white shadow-sm"><span class="display text-2xl text-ink">03</span></div>
+              <h3 class="display mt-5 text-2xl text-ink">Покупайте онлайн</h3>
+              <p class="mt-2 max-w-[16rem] text-sm font-light text-inksoft">Укажите наш адрес — или мы купим за вас, если карта не работает.</p>
+            </div>
+            <div class="reveal relative z-10 flex flex-col items-center text-center" data-d="3">
+              <div class="grid size-14 place-items-center rounded-full border border-brand/40 bg-white shadow-sm"><span class="display text-2xl text-ink">04</span></div>
+              <h3 class="display mt-5 text-2xl text-ink">Получите посылку</h3>
+              <p class="mt-2 max-w-[16rem] text-sm font-light text-inksoft">We consolidate, ship and deliver to your door.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================== MEMBERSHIP (from Concept 2, polar-styled) -->
+      <section id="membership" class="relative bg-ink py-28 text-white">
+        <div class="mx-auto max-w-[1340px] px-8">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="reveal text-[11px] font-medium uppercase tw text-white/50">Программа лояльности</p>
+            <h2 class="reveal display mt-4 text-4xl font-light md:text-5xl" data-d="1">Чем больше отправляете — тем больше экономите</h2>
+            <p class="reveal mt-5 font-light leading-relaxed text-white/65" data-d="2">Каждая отправка повышает уровень — больше скидок автоматически. Цели в секрете.</p>
+          </div>
+
+          <div class="reveal glass mx-auto mt-14 max-w-3xl rounded-3xl p-8 md:p-12" data-d="2">
+            <div class="mb-3 flex items-center justify-end text-sm">
+              <span class="font-medium uppercase tw text-[11px] text-white/45">Следующий уровень 🔒</span>
+            </div>
+            <!-- progress track -->
+            <div class="relative h-2.5 rounded-full bg-white/10">
+              <div class="absolute left-0 top-0 h-2.5 rounded-full bg-gradient-to-r from-brand to-frost" style="width:58%"></div>
+              <div class="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-ink bg-frost" style="left:58%">
+                <span class="absolute inset-0 animate-ping rounded-full bg-frost/50"></span>
+              </div>
+              <div class="absolute left-0 top-1/2 size-3 -translate-y-1/2 rounded-full bg-frost"></div>
+              <div class="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/25" style="left:78%"></div>
+              <div class="absolute right-0 top-1/2 size-3 -translate-y-1/2 rounded-full bg-white/20"></div>
+            </div>
+            <!-- tier labels -->
+            <div class="mt-6 grid grid-cols-3">
+              <div class="text-left">
+                <p class="text-sm font-semibold text-white">Старт</p>
+                <p class="text-xs text-frost">−5% · стартовый уровень</p>
+              </div>
+              <div class="text-center">
+                <p class="text-sm font-semibold text-white/70">Талант 🔒</p>
+                <p class="text-xs text-white/40">далее · награда скрыта</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-semibold text-white/60">Эксперт 🔒</p>
+                <p class="text-xs text-white/35">закрыто · ???</p>
+              </div>
+            </div>
+            <p class="mt-8 text-center text-sm font-light text-white/55">Старт бесплатно — отправляйте, уровни откроются сами.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================== WAREHOUSES LIST -->
+      <section id="service" class="relative bg-paper py-28">
+        <div class="mist mist--top"></div>
+        <div class="mx-auto max-w-[1340px] px-8">
+          <div class="mb-14 text-center">
+            <p class="reveal text-[11px] font-medium uppercase tw text-inksoft">Наши склады</p>
+            <h3 class="reveal display mt-4 text-4xl font-light text-ink md:text-5xl" data-d="1">Один адрес в каждой стране</h3>
+          </div>
+          <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <div class="reveal flex flex-col items-center rounded-2xl border border-ink/10 bg-white px-4 py-8 text-center transition hover:border-brand/40 hover:shadow-lg hover:shadow-ink/5">
+              <span class="text-4xl">🇺🇸</span>
+              <span class="display mt-4 text-2xl text-ink">США</span>
+              <span class="mt-4 rounded-full bg-paper px-3 py-1 text-[11px] font-medium uppercase tw text-inksoft">5–7 дней</span>
+            </div>
+            <div class="reveal flex flex-col items-center rounded-2xl border border-ink/10 bg-white px-4 py-8 text-center transition hover:border-brand/40 hover:shadow-lg hover:shadow-ink/5" data-d="1">
+              <span class="text-4xl">🇩🇪</span>
+              <span class="display mt-4 text-2xl text-ink">Германия</span>
+              <span class="mt-4 rounded-full bg-paper px-3 py-1 text-[11px] font-medium uppercase tw text-inksoft">4–6 дней</span>
+            </div>
+            <div class="reveal flex flex-col items-center rounded-2xl border border-ink/10 bg-white px-4 py-8 text-center transition hover:border-brand/40 hover:shadow-lg hover:shadow-ink/5" data-d="2">
+              <span class="text-4xl">🇨🇳</span>
+              <span class="display mt-4 text-2xl text-ink">Китай</span>
+              <span class="mt-4 rounded-full bg-paper px-3 py-1 text-[11px] font-medium uppercase tw text-inksoft">7–10 дней</span>
+            </div>
+            <div class="reveal flex flex-col items-center rounded-2xl border border-ink/10 bg-white px-4 py-8 text-center transition hover:border-brand/40 hover:shadow-lg hover:shadow-ink/5" data-d="3">
+              <span class="text-4xl">🇬🇧</span>
+              <span class="display mt-4 text-2xl text-ink">Великобритания</span>
+              <span class="mt-4 rounded-full bg-paper px-3 py-1 text-[11px] font-medium uppercase tw text-inksoft">4–6 дней</span>
+            </div>
+            <div class="reveal flex flex-col items-center rounded-2xl border border-ink/10 bg-white px-4 py-8 text-center transition hover:border-brand/40 hover:shadow-lg hover:shadow-ink/5">
+              <span class="text-4xl">🇨🇾</span>
+              <span class="display mt-4 text-2xl text-ink">Кипр</span>
+              <span class="mt-4 rounded-full bg-paper px-3 py-1 text-[11px] font-medium uppercase tw text-inksoft">3–5 дней</span>
+            </div>
+          </div>
+
+          <!-- shipping methods & pricing -->
+          <div class="mt-20 mb-10 text-center">
+            <p class="reveal text-[11px] font-medium uppercase tw text-inksoft">Доставка и тарифы</p>
+            <h3 class="reveal display mt-4 text-4xl font-light text-ink md:text-5xl" data-d="1">Рассчитайте стоимость</h3>
+            <p class="reveal mt-4 font-light text-inksoft" data-d="2">Цена зависит от страны, способа и веса — попробуйте:</p>
+          </div>
+          <div class="reveal mx-auto max-w-4xl overflow-hidden rounded-3xl border border-ink/10 bg-white shadow-xl shadow-ink/5">
+            <div class="grid md:grid-cols-2">
+              <!-- controls -->
+              <div class="p-8 md:p-10">
+                <p class="text-[11px] font-medium uppercase tw text-inksoft">Покупаете из</p>
+                <div id="calcOrigin" class="mt-3 flex flex-wrap gap-2"></div>
+                <p class="mt-8 text-[11px] font-medium uppercase tw text-inksoft">Способ доставки</p>
+                <div id="calcMethod" class="mt-3 flex flex-wrap gap-2"></div>
+                <div class="mt-8 flex items-center justify-between">
+                  <p class="text-[11px] font-medium uppercase tw text-inksoft">Вес посылки</p>
+                  <span id="calcWLabel" class="display text-2xl text-ink">3 кг</span>
+                </div>
+                <input id="calcW" type="range" min="0.5" max="30" step="0.5" value="3" class="mt-4 w-full" />
+                <div class="mt-1 flex justify-between text-[10px] font-medium uppercase tw text-ink/40"><span>0.5 кг</span><span>30 кг</span></div>
+              </div>
+              <!-- result -->
+              <div class="flex flex-col justify-between bg-ink p-8 text-white md:p-10">
+                <div>
+                  <p class="text-[11px] font-medium uppercase tw text-white/50">Итого примерно</p>
+                  <p id="calcTotal" class="display mt-2 text-6xl font-light text-frost">$25.50</p>
+                  <p id="calcMeta" class="mt-3 text-sm font-light text-white/65">🇺🇸 USA · Standard Air · 7–10 дней</p>
+                </div>
+                <div class="mt-8 space-y-3 border-t border-white/12 pt-6 text-sm text-white/70">
+                  <div class="flex justify-between"><span id="calcRateLabel">Тариф · 3 кг × $8.50</span><span id="calcShip" class="text-white">$25.50</span></div>
+                  <div class="flex justify-between"><span>Объединение и хранение 45 дней</span><span class="text-frost">Бесплатно</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="reveal mt-6 text-center text-[12px] font-light text-inksoft">Это примерная оценка · оплата по объёмному весу.</p>
+        </div>
+      </section>
+
+      <!-- ===================================================== REVIEWS (social proof) -->
+      <section id="reviews" class="relative bg-ice py-28">
+        <div class="mx-auto max-w-[1340px] px-8">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="reveal text-[11px] font-medium uppercase tw text-inksoft">Отзывы</p>
+            <h2 class="reveal display mt-4 text-4xl font-light text-ink md:text-5xl" data-d="1">Нас любят покупатели по всему миру</h2>
+            <p class="reveal mt-4 font-light text-inksoft" data-d="2">4.9 ★ по более чем 40 000 оценкам.</p>
+          </div>
+          <div class="mt-14 grid gap-6 md:grid-cols-3">
+            <div class="reveal rounded-2xl border border-ink/10 bg-white p-8">
+              <div class="text-frost">★★★★★</div>
+              <p class="mt-4 font-light leading-relaxed text-ink/80">«Купила в магазине США, который не доставлял к нам. Пришло за 6 дней, идеально упаковано.»</p>
+              <p class="mt-6 text-[11px] font-medium uppercase tw text-inksoft">Аида К. · Алматы</p>
+            </div>
+            <div class="reveal rounded-2xl border border-ink/10 bg-white p-8" data-d="1">
+              <div class="text-frost">★★★★★</div>
+              <p class="mt-4 font-light leading-relaxed text-ink/80">«„Купим за вас“ выручил, когда карту не приняли за границей. Всё чётко.»</p>
+              <p class="mt-6 text-[11px] font-medium uppercase tw text-inksoft">Марко Р. · Лиссабон</p>
+            </div>
+            <div class="reveal rounded-2xl border border-ink/10 bg-white p-8" data-d="2">
+              <div class="text-frost">★★★★★</div>
+              <p class="mt-4 font-light leading-relaxed text-ink/80">«Объединили четыре посылки в одну — доставка вдвое дешевле. Супер.»</p>
+              <p class="mt-6 text-[11px] font-medium uppercase tw text-inksoft">Лена П. · Берлин</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================== FAQ -->
+      <section id="faq" class="relative bg-paper py-28">
+        <div class="mx-auto max-w-3xl px-8">
+          <div class="text-center">
+            <p class="reveal text-[11px] font-medium uppercase tw text-inksoft">Поддержка</p>
+            <h2 class="reveal display mt-4 text-4xl font-light text-ink md:text-5xl" data-d="1">Частые вопросы</h2>
+          </div>
+          <div class="reveal mt-12 divide-y divide-ink/10 border-y border-ink/10" data-d="1">
+            <details class="group py-5">
+              <summary class="flex cursor-pointer list-none items-center justify-between text-lg font-light text-ink">Как получить адреса для доставки?<span class="text-brand transition group-open:rotate-45">＋</span></summary>
+              <p class="mt-3 text-sm font-light leading-relaxed text-inksoft">Бесплатная регистрация — адреса всех пяти складов появятся сразу.</p>
+            </details>
+            <details class="group py-5">
+              <summary class="flex cursor-pointer list-none items-center justify-between text-lg font-light text-ink">Что если магазин не принимает мою карту?<span class="text-brand transition group-open:rotate-45">＋</span></summary>
+              <p class="mt-3 text-sm font-light leading-relaxed text-inksoft">Воспользуйтесь «Купим за вас» — пришлите ссылку, мы купим и оплатим на месте.</p>
+            </details>
+            <details class="group py-5">
+              <summary class="flex cursor-pointer list-none items-center justify-between text-lg font-light text-ink">Сколько стоит доставка?<span class="text-brand transition group-open:rotate-45">＋</span></summary>
+              <p class="mt-3 text-sm font-light leading-relaxed text-inksoft">Зависит от страны, способа и веса. Рассчитайте выше.</p>
+            </details>
+            <details class="group py-5">
+              <summary class="flex cursor-pointer list-none items-center justify-between text-lg font-light text-ink">Можно объединять посылки?<span class="text-brand transition group-open:rotate-45">＋</span></summary>
+              <p class="mt-3 text-sm font-light leading-relaxed text-inksoft">Да — объединение собирает посылки в одну коробку, экономия до 60%.</p>
+            </details>
+            <details class="group py-5">
+              <summary class="flex cursor-pointer list-none items-center justify-between text-lg font-light text-ink">Посылка застрахована и отслеживается?<span class="text-brand transition group-open:rotate-45">＋</span></summary>
+              <p class="mt-3 text-sm font-light leading-relaxed text-inksoft">Каждая отправка застрахована и отслеживается в реальном времени, от полки до двери.</p>
+            </details>
+            <details class="group py-5">
+              <summary class="flex cursor-pointer list-none items-center justify-between text-lg font-light text-ink">Сколько идёт доставка?<span class="text-brand transition group-open:rotate-45">＋</span></summary>
+              <p class="mt-3 text-sm font-light leading-relaxed text-inksoft">От 2–4 дней (Приоритет) до 14–20 (Эконом) — выбираете скорость вы.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================== CTA BANNER -->
+      <section id="cta" class="px relative flex h-[88vh] items-center justify-center text-center text-white">
+        <img data-parallax="0.16" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2400&q=80" alt="" />
+        <div class="absolute inset-0 bg-ink/55"></div>
+        <div class="reveal relative z-10 mx-auto max-w-2xl px-8">
+          <h2 class="display text-4xl font-light leading-tight md:text-6xl">Любимые магазины — за 2 минуты</h2>
+          <p class="mt-5 font-light text-white/80">320 000+ покупателей. Без комиссий и подписки.</p>
+          <div class="mt-9 flex flex-wrap justify-center gap-4">
+            <a href="#" class="rounded-full bg-white px-8 py-4 text-[11px] font-medium uppercase tw text-ink transition hover:bg-frost">Зарегистрироваться</a>
+            <a href="#service" class="rounded-full border border-white/50 px-8 py-4 text-[11px] font-medium uppercase tw text-white transition hover:bg-white hover:text-ink">Рассчитать стоимость</a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="bg-ink text-white/65">
+        <div class="mx-auto max-w-[1340px] px-8 py-20">
+          <div class="grid gap-12 md:grid-cols-5">
+            <!-- brand -->
+            <div class="md:col-span-2">
+              <span class="display text-3xl text-white">Movato</span>
+              <p class="mt-4 max-w-xs text-sm font-light leading-relaxed text-white/55">Покупайте по всему миру с доставкой. Пересылка и «Купим за вас» с пяти складов.</p>
+              <div class="mt-6 space-y-2 text-sm">
+                <a href="#" class="block text-white/75 transition hover:text-frost">support@movato.com</a>
+                <a href="#" class="block text-white/55 transition hover:text-frost">+1 (800) 000-0000</a>
+              </div>
+              <div class="mt-6 flex gap-3">
+                <a href="#" class="grid size-9 place-items-center rounded-full border border-white/20 text-[11px] text-white/70 transition hover:border-frost hover:text-frost">f</a>
+                <a href="#" class="grid size-9 place-items-center rounded-full border border-white/20 text-[11px] text-white/70 transition hover:border-frost hover:text-frost">in</a>
+                <a href="#" class="grid size-9 place-items-center rounded-full border border-white/20 text-[11px] text-white/70 transition hover:border-frost hover:text-frost">ig</a>
+                <a href="#" class="grid size-9 place-items-center rounded-full border border-white/20 text-[11px] text-white/70 transition hover:border-frost hover:text-frost">▶</a>
+              </div>
+            </div>
+            <!-- services -->
+            <div>
+              <p class="text-[11px] font-medium uppercase tw text-white/40">Услуги</p>
+              <ul class="mt-4 space-y-3 text-sm font-light text-white/70">
+                <li><a href="#plans" class="transition hover:text-frost">Купим за вас</a></li>
+                <li><a href="#plans" class="transition hover:text-frost">Упаковка</a></li>
+                <li><a href="#plans" class="transition hover:text-frost">Проверка посылки</a></li>
+                <li><a href="#plans" class="transition hover:text-frost">Объединение</a></li>
+                <li><a href="#plans" class="transition hover:text-frost">Возврат</a></li>
+              </ul>
+            </div>
+            <!-- company -->
+            <div>
+              <p class="text-[11px] font-medium uppercase tw text-white/40">Компания</p>
+              <ul class="mt-4 space-y-3 text-sm font-light text-white/70">
+                <li><a href="#service" class="transition hover:text-frost">Склады</a></li>
+                <li><a href="#service" class="transition hover:text-frost">Тарифы</a></li>
+                <li><a href="#membership" class="transition hover:text-frost">Программа лояльности</a></li>
+                <li><a href="#route" class="transition hover:text-frost">Отслеживание</a></li>
+                <li><a href="#cta" class="transition hover:text-frost">Контакты</a></li>
+              </ul>
+            </div>
+            <!-- legal -->
+            <div>
+              <p class="text-[11px] font-medium uppercase tw text-white/40">Правовая информация</p>
+              <ul class="mt-4 space-y-3 text-sm font-light text-white/70">
+                <li><a href="#" class="transition hover:text-frost">Условия</a></li>
+                <li><a href="#" class="transition hover:text-frost">Конфиденциальность</a></li>
+                <li><a href="#" class="transition hover:text-frost">Запрещённые товары</a></li>
+                <li><a href="#" class="transition hover:text-frost">Возвраты</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-[11px] uppercase tw text-white/45 sm:flex-row">
+            <span>© 2026 Movato · Доставка вашей мечты</span>
+            <div class="flex items-center gap-2 normal-case tracking-normal">
+              <span class="rounded bg-white/10 px-2 py-1">VISA</span>
+              <span class="rounded bg-white/10 px-2 py-1">Mastercard</span>
+              <span class="rounded bg-white/10 px-2 py-1">PayPal</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+
+    <!-- ===================================================== FLYOUT: HOW IT WORKS -->
+    <div class="flyout-overlay" id="flyoutOverlay"></div>
+    <button class="flyout-tab glass px-3 py-5 text-[10px] font-medium uppercase tw text-ink" id="flyoutTab">Скачать приложение</button>
+    <aside class="flyout bg-white text-ink" id="flyout">
+      <div class="flex h-full flex-col">
+        <div class="flex items-center justify-between border-b border-ink/10 px-8 py-6">
+          <h3 class="display text-2xl">Как это работает</h3>
+          <button id="flyoutClose" class="text-[10px] font-medium uppercase tw text-inksoft hover:text-ink">Закрыть ✕</button>
+        </div>
+        <div class="flex-1 space-y-10 overflow-y-auto px-8 py-8">
+          <div><h4 class="display text-2xl">1. Регистрация</h4><p class="mt-2 font-light leading-relaxed text-inksoft">Создайте бесплатный аккаунт — адрес доставки в каждой из пяти стран.</p></div>
+          <div><h4 class="display text-2xl">2. Покупайте где угодно</h4><p class="mt-2 font-light leading-relaxed text-inksoft">Оформите заказ на адрес Movato — или пришлите ссылку, и мы купим за вас.</p></div>
+          <div><h4 class="display text-2xl">3. Мы получаем</h4><p class="mt-2 font-light leading-relaxed text-inksoft">Каждая посылка фиксируется, фотографируется и хранится бесплатно 45 дней.</p></div>
+          <div><h4 class="display text-2xl">4. Объединяем</h4><p class="mt-2 font-light leading-relaxed text-inksoft">Объединяем всё в одну коробку — вес меньше до 60%.</p></div>
+          <div><h4 class="display text-2xl">5. Отправляем</h4><p class="mt-2 font-light leading-relaxed text-inksoft">Выберите скорость. Растаможим и доставим с полным отслеживанием.</p></div>
+          <div><h4 class="display text-2xl">6. Доставлено</h4><p class="mt-2 font-light leading-relaxed text-inksoft">Посылка придёт за 3–10 дней — мир у вас дома.</p></div>
+        </div>
+        <div class="border-t border-ink/10 px-8 py-6"><a href="#cta" class="block bg-ink px-6 py-3 text-center text-[10px] font-medium uppercase tw text-white">Начать</a></div>
+      </div>
+    </aside>
+
+    <!-- ===================================================== SCRIPTS -->
+    <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+    <script>
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var vh = function () { return window.innerHeight; };
+
+      /* ---- intersection reveals (reveal / clip / scribble) ---- */
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { threshold: .25 });
+      document.querySelectorAll('.reveal, .clip, .scribble').forEach(function (el) { io.observe(el); });
+
+      /* ---- text scroll-fade: sweep mask as element crosses viewport ---- */
+      var fadeEls = [].slice.call(document.querySelectorAll('.text-fade'));
+      function updFade() {
+        fadeEls.forEach(function (el) {
+          var r = el.getBoundingClientRect();
+          var p = 1 - (r.top - vh() * 0.2) / (vh() * 0.6);
+          p = Math.max(0, Math.min(1, p));
+          el.style.setProperty('--m', (p * 100).toFixed(1) + '%');
+        });
+      }
+
+      /* ---- parallax images + scroll-speed translate ---- */
+      var pxEls = [].slice.call(document.querySelectorAll('[data-parallax]'));
+      var speedEls = [].slice.call(document.querySelectorAll('[data-speed]'));
+      var globeCards = [].slice.call(document.querySelectorAll('[data-globe]'));
+      function applyParallax() {
+        pxEls.forEach(function (img) {
+          var r = img.parentElement.getBoundingClientRect();
+          var off = (r.top + r.height / 2 - vh() / 2) / vh();
+          var amt = parseFloat(img.dataset.parallax) || .1;
+          img.style.transform = 'translate3d(0,' + (-off * amt * 100).toFixed(2) + 'px,0)';
+        });
+        speedEls.forEach(function (el) {
+          var s = parseFloat(el.dataset.speed) || 0;
+          el.style.transform = 'translate3d(0,' + (window.scrollY * s).toFixed(2) + 'px,0)';
+        });
+        globeCards.forEach(function (el) {
+          var sec = el.closest('section');
+          var r = sec.getBoundingClientRect();
+          var p = Math.max(0, Math.min(1, (-r.top) / (r.height - vh())));
+          var amt = parseFloat(el.dataset.globe) || .2;
+          el.style.transform = 'translateY(' + ((1 - p) * amt * 100).toFixed(1) + 'px)';
+        });
+      }
+
+      /* ---- mist transitions: parallax + rotate as section enters ---- */
+      var mists = [].slice.call(document.querySelectorAll('.mist'));
+      function updMist() {
+        mists.forEach(function (m) {
+          var r = m.parentElement.getBoundingClientRect();
+          var p = (vh() - r.top) / vh();           // 0 below view -> 1+ in view
+          p = Math.max(0, Math.min(1.4, p));
+          var rot = (1 - Math.min(1, p)) * 26;
+          m.style.transform = 'translateY(' + (-(p) * 8).toFixed(1) + 'vh) rotateX(' + rot.toFixed(1) + 'deg)';
+          m.style.opacity = Math.max(0, 1 - Math.abs(p - 0.6) * 1.3).toFixed(2);
+        });
+      }
+
+      /* ---- horizontal pinned scroll ---- */
+      var htrack = document.getElementById('htrack');
+      var hwrap = htrack ? htrack.closest('.hwrap') : null;
+      function updHoriz() {
+        if (!htrack) return;
+        var r = hwrap.getBoundingClientRect();
+        var dist = htrack.scrollWidth - window.innerWidth;
+        var p = Math.max(0, Math.min(1, (-r.top) / (hwrap.offsetHeight - vh())));
+        htrack.style.transform = 'translate3d(' + (-p * dist).toFixed(1) + 'px,0,0)';
+      }
+
+      /* ---- flight path ---- */
+      (function () {
+        var sec = document.getElementById('route'); if (!sec) return;
+        var path = document.getElementById('routePath'), flown = document.getElementById('routeFlown'), ind = document.getElementById('routeInd');
+        if (!path) return;
+        var len = path.getTotalLength();
+        flown.style.strokeDasharray = len + ' ' + len; flown.style.strokeDashoffset = len;
+        var pin = sec.querySelector('.sticky');
+        window.__updRoute = function () {
+          var wrap = pin.parentElement.getBoundingClientRect();
+          var p = Math.min(1, Math.max(0, (-wrap.top) / (pin.parentElement.offsetHeight - vh())));
+          flown.style.strokeDashoffset = (len * (1 - p)).toFixed(1);
+          var pt = flown.getPointAtLength(p * len);
+          ind.setAttribute('transform', 'translate(' + pt.x.toFixed(1) + ',' + pt.y.toFixed(1) + ')');
+        };
+      })();
+
+      /* ---- nav theme switch (dark text over light sections) ---- */
+      var nav = document.getElementById('nav');
+      var lightSections = [].slice.call(document.querySelectorAll('.bg-paper, .bg-ice, .bg-white'));
+      function updNav() {
+        var y = 90;
+        var onLight = lightSections.some(function (s) { var r = s.getBoundingClientRect(); return r.top <= y && r.bottom >= y; });
+        if ((window.__heroWhite || 0) > 0.5) onLight = true;   // hero whiteout = light bg → dark nav text
+        nav.classList.toggle('text-ink', onLight);
+        nav.classList.toggle('text-white', !onLight);
+      }
+
+      /* White Desert clouds + mist transition — scroll-speed parallax clouds rise as the hero scrolls out, whiting it to mist */
+      var heroSection = document.getElementById('heroSection');
+      var cloudBack = document.getElementById('cloudBack');
+      var cloudFront = document.getElementById('cloudFront');
+      var heroTravel = 0;
+      function calcHero() { if (heroSection) heroTravel = heroSection.offsetHeight - window.innerHeight; }
+      calcHero();
+      window.addEventListener('resize', calcHero);
+      function updHeroMist() {
+        if (!heroSection || !cloudFront) return;
+        var p = heroTravel > 0 ? Math.min(1, Math.max(0, (-heroSection.getBoundingClientRect().top) / heroTravel)) : 0;
+        var fade = Math.min(1, Math.max(0, p / 0.14));
+        // clouds parked 100vh below; reach the MIDDLE of the hero (cloud top ~50vh) right as the pin releases at p=1,
+        // so the next section starts appearing while the cloud top is mid-screen.
+        cloudBack.style.opacity = fade.toFixed(3);
+        cloudBack.style.transform = 'translate3d(0,' + (-p * 108).toFixed(2) + 'vh,0)';
+        cloudFront.style.opacity = fade.toFixed(3);
+        cloudFront.style.transform = 'translate3d(0,' + (-p * 128).toFixed(2) + 'vh,0)';
+        window.__heroWhite = Math.min(1, Math.max(0, (p - 0.55) / 0.3));
+      }
+
+      function frame() {
+        try { updHeroMist(); } catch (e) {}   // clouds first + isolated so nothing else can block them
+        try { applyParallax(); } catch (e) {}
+        try { updFade(); } catch (e) {}
+        try { updMist(); } catch (e) {}
+        try { updHoriz(); } catch (e) {}
+        try { updNav(); } catch (e) {}
+        try { if (window.__updRoute) window.__updRoute(); } catch (e) {}
+      }
+
+      if (reduce) {
+        frame();
+        window.addEventListener('scroll', frame);
+        window.addEventListener('resize', frame);
+      } else {
+        var lenis = new Lenis({ duration: 1.25, easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); }, smoothWheel: true });
+        function raf(t) { lenis.raf(t); try { frame(); } catch (e) {} requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+        document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+          a.addEventListener('click', function (e) { var t = document.querySelector(a.getAttribute('href')); if (t) { e.preventDefault(); lenis.scrollTo(t); } });
+        });
+      }
+      frame();
+      window.addEventListener('resize', frame);
+
+      /* ---- card-flick ---- */
+      document.querySelectorAll('[data-flick]').forEach(function (card) {
+        card.addEventListener('mouseenter', function () { setActive(card); });
+        card.addEventListener('click', function () { setActive(card); });
+      });
+      function setActive(card) {
+        document.querySelectorAll('.flick-item').forEach(function (c) { c.classList.toggle('active', c === card); });
+      }
+
+      /* ---- flyout ---- */
+      var fly = document.getElementById('flyout'), flyOv = document.getElementById('flyoutOverlay');
+      function openFly(){ fly.classList.add('open'); flyOv.classList.add('show'); }
+      function closeFly(){ fly.classList.remove('open'); flyOv.classList.remove('show'); }
+      document.getElementById('flyoutTab').onclick = openFly;
+      document.getElementById('flyoutClose').onclick = closeFly;
+      flyOv.onclick = closeFly;
+
+
+      /* ---- pricing estimator: total depends on origin × method × weight ---- */
+      (function () {
+        var ORIGINS = {
+          'США':            { flag: '🇺🇸', base: 8.5 },
+          'Германия':       { flag: '🇩🇪', base: 9.5 },
+          'Китай':          { flag: '🇨🇳', base: 6.5 },
+          'Великобритания': { flag: '🇬🇧', base: 9.0 },
+          'Кипр':           { flag: '🇨🇾', base: 7.0 },
+        };
+        var METHODS = {
+          'Эконом':           { mult: 0.55, eta: '14–20 дней' },
+          'Стандарт авиа':    { mult: 1.0,  eta: '7–10 дней' },
+          'Экспресс авиа':    { mult: 1.6,  eta: '3–5 дней' },
+          'Приоритет курьер': { mult: 2.3,  eta: '2–4 дня' },
+        };
+        var oWrap = document.getElementById('calcOrigin'), mWrap = document.getElementById('calcMethod');
+        if (!oWrap || !mWrap) return;
+        var state = { origin: 'США', method: 'Стандарт авиа', weight: 3 };
+
+        oWrap.innerHTML = Object.keys(ORIGINS).map(function (k) {
+          return '<button class="calc-chip" data-o="' + k + '">' + ORIGINS[k].flag + ' ' + k + '</button>';
+        }).join('');
+        mWrap.innerHTML = Object.keys(METHODS).map(function (k) {
+          return '<button class="calc-chip" data-m="' + k + '">' + k + '</button>';
+        }).join('');
+
+        var wInput = document.getElementById('calcW'), wLabel = document.getElementById('calcWLabel');
+        var elTotal = document.getElementById('calcTotal'), elMeta = document.getElementById('calcMeta');
+        var elRate = document.getElementById('calcRateLabel'), elShip = document.getElementById('calcShip');
+
+        function render() {
+          oWrap.querySelectorAll('[data-o]').forEach(function (b) { b.classList.toggle('on', b.dataset.o === state.origin); });
+          mWrap.querySelectorAll('[data-m]').forEach(function (b) { b.classList.toggle('on', b.dataset.m === state.method); });
+          var rate = ORIGINS[state.origin].base * METHODS[state.method].mult;
+          var total = rate * state.weight;
+          wLabel.textContent = state.weight + ' кг';
+          elTotal.textContent = '$' + total.toFixed(2);
+          elMeta.textContent = ORIGINS[state.origin].flag + ' ' + state.origin + ' · ' + state.method + ' · ' + METHODS[state.method].eta;
+          elRate.textContent = 'Тариф · ' + state.weight + ' кг × $' + rate.toFixed(2);
+          elShip.textContent = '$' + total.toFixed(2);
+        }
+        oWrap.addEventListener('click', function (e) { var b = e.target.closest('[data-o]'); if (b) { state.origin = b.dataset.o; render(); } });
+        mWrap.addEventListener('click', function (e) { var b = e.target.closest('[data-m]'); if (b) { state.method = b.dataset.m; render(); } });
+        wInput.addEventListener('input', function () { state.weight = parseFloat(wInput.value); render(); });
+        render();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Movato — Polar hero animation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Hanken+Grotesk:wght@300;400;500;600&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #1e2945;
+        --inksoft: #5b6678;
+        --frost: #6af0ff;
+        --brand: #00bed5;
+        --paper: #f6f9fa;
+        --dur: 16s;
+        --out: cubic-bezier(.16, 1, .3, 1);
+        --bounce: cubic-bezier(.34, 1.56, .64, 1);
+      }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { height: 100%; background: #05080f; font-family: '"Hanken Grotesk"', system-ui, sans-serif; overflow: hidden; }
+      .display { font-family: '"Cormorant Garamond"', Georgia, serif; }
+      .tw { letter-spacing: .26em; }
+      .fit { width: 100vw; height: 100vh; }
+
+      .stage {
+        position: relative; width: 100vw; height: 100vh; overflow: hidden; color: #fff;
+        background: #05080f url('images/astronaut-hero.png') center/cover no-repeat;
+      }
+      /* slow ken-burns drift on the photo */
+      .stage::before {
+        content:''; position:absolute; inset:-4%; z-index:0; background:inherit; background-size:cover; background-position:center;
+        animation: kb var(--dur) ease-in-out infinite;
+      }
+      @keyframes kb { 0%{transform:scale(1.06)} 50%{transform:scale(1)} 100%{transform:scale(1.06)} }
+
+      /* scrims for legibility */
+      .scrim { position:absolute; inset:0; z-index:2; pointer-events:none;
+        background:
+          linear-gradient(to bottom, rgba(5,8,15,.5) 0%, transparent 24%),
+          linear-gradient(to top,    rgba(5,8,15,.8) 0%, rgba(5,8,15,.15) 32%, transparent 54%);
+      }
+      .vignette { position:absolute; inset:0; z-index:23; pointer-events:none; box-shadow: inset 0 0 320px 70px rgba(5,8,15,.55); }
+      .seam { position:absolute; left:0; right:0; bottom:0; height:16vh; z-index:24; pointer-events:none; background: linear-gradient(to bottom, transparent, var(--paper)); }
+
+      /* stars */
+      .stars { position:absolute; inset:0; z-index:1; }
+      .star { position:absolute; border-radius:50%; background:#dCEaf4; animation: tw 4s ease-in-out infinite; }
+      .star.big { box-shadow:0 0 6px 1px rgba(180,225,255,.75); }
+      @keyframes tw { 0%,100%{opacity:.8} 50%{opacity:.16} }
+
+      /* ---------------- GLOBE (icy) ---------------- */
+      .globe-wrap { position:absolute; left:50%; top:46%; transform: translate(-50%,-50%); width:380px; height:380px; z-index:6; opacity:.94; }
+      .atmo { position:absolute; inset:-30px; border-radius:50%; background: radial-gradient(circle at 50% 46%, rgba(106,240,255,.55), transparent 60%); filter: blur(16px); }
+      .globe {
+        position:absolute; inset:0; border-radius:50%; overflow:hidden;
+        background: radial-gradient(circle at 36% 30%, #ffffff 0%, #bfeef6 20%, #6fd8ec 44%, #2bb6d4 68%, #1486a8 86%, #0d6e8c 100%);
+        box-shadow: inset -30px -26px 70px rgba(13,60,80,.45), inset 24px 18px 54px rgba(255,255,255,.6), 0 0 70px rgba(106,240,255,.45);
+      }
+      .globe::before {
+        content:''; position:absolute; inset:0; border-radius:50%;
+        background:
+          repeating-linear-gradient(90deg, transparent 0 28px, rgba(255,255,255,.16) 28px 29px),
+          repeating-linear-gradient(0deg, transparent 0 28px, rgba(255,255,255,.10) 28px 29px);
+        mix-blend-mode: overlay; animation: spinTex 20s linear infinite;
+      }
+      .globe::after {
+        content:''; position:absolute; inset:0; border-radius:50%;
+        background:
+          radial-gradient(36px 24px at 30% 38%, rgba(255,255,255,.9), transparent 70%),
+          radial-gradient(52px 28px at 58% 30%, rgba(255,255,255,.82), transparent 70%),
+          radial-gradient(42px 30px at 66% 60%, rgba(255,255,255,.82), transparent 70%),
+          radial-gradient(28px 20px at 40% 66%, rgba(255,255,255,.8), transparent 70%),
+          radial-gradient(32px 20px at 78% 46%, rgba(255,255,255,.78), transparent 70%);
+        animation: spinTex 20s linear infinite; opacity:.85;
+      }
+      @keyframes spinTex { to { background-position: 380px 0, 0 0; } }
+      .term { position:absolute; inset:0; border-radius:50%; background: linear-gradient(100deg, transparent 44%, rgba(13,50,70,.34) 78%); animation: termspin 20s linear infinite; }
+      @keyframes termspin { to { transform: rotate(360deg); } }
+
+      .orbit { position:absolute; left:50%; top:46%; width:600px; height:600px; transform: translate(-50%,-50%) rotateX(73deg); border:1.5px dashed rgba(106,240,255,.5); border-radius:50%; animation: spin 26s linear infinite; z-index:5; }
+      .orbit .sat { position:absolute; top:-9px; left:50%; width:20px; height:16px; border-radius:3px; background:var(--brand); box-shadow:0 0 16px var(--brand); }
+      @keyframes spin { to { transform: translate(-50%,-50%) rotateX(73deg) rotate(360deg); } }
+
+      /* flight arcs (converge on globe centre 640,332) */
+      svg.routes { position:absolute; inset:0; width:100%; height:100%; z-index:7; }
+      .arc { fill:none; stroke:rgba(106,240,255,.6); stroke-width:2; stroke-dasharray:6 10; filter:drop-shadow(0 0 5px rgba(106,240,255,.85)); animation: dash .8s linear infinite; }
+      @keyframes dash { to { stroke-dashoffset:-32; } }
+
+      /* country pins (glass) */
+      .pin { position:absolute; transform:translate(-50%,-50%); z-index:12; display:flex; align-items:center; gap:7px; padding:7px 13px; border-radius:999px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); box-shadow:0 8px 24px rgba(0,0,0,.3); backdrop-filter:blur(8px); font-weight:600; font-size:15px; color:#fff; white-space:nowrap; animation: pinpop 1s var(--bounce) both, bob 5s ease-in-out infinite; }
+      .pin .d { width:8px;height:8px;border-radius:50%;background:var(--frost);animation:ping 1.8s ease-out infinite; }
+      @keyframes ping { 0%{box-shadow:0 0 0 0 rgba(106,240,255,.55)} 100%{box-shadow:0 0 0 14px rgba(106,240,255,0)} }
+      @keyframes pinpop { from{opacity:0;transform:translate(-50%,-50%) scale(.5)} to{opacity:1} }
+      @keyframes bob { 50%{translate:0 -5px} }
+
+      /* product cards riding arcs (glass) */
+      .card { position:absolute; left:0; top:0; z-index:13; display:flex; align-items:center; gap:8px; padding:9px 13px; border-radius:14px; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.4); backdrop-filter:blur(8px); box-shadow:0 10px 26px rgba(0,0,0,.34); font-weight:500; font-size:15px; color:#fff; white-space:nowrap; offset-rotate:0deg; animation: ride 4.4s cubic-bezier(.45,0,.4,1) infinite; }
+      .card .em { font-size:23px; }
+      @keyframes ride { 0%{offset-distance:0%;opacity:0;scale:.55} 12%{opacity:1;scale:1} 82%{opacity:1;scale:1} 100%{offset-distance:100%;opacity:0;scale:.4} }
+      .c1{offset-path:path('M 150 170 Q 420 120 640 332');animation-delay:0s}
+      .c2{offset-path:path('M 1130 175 Q 840 120 640 332');animation-delay:.8s}
+      .c3{offset-path:path('M 175 560 Q 440 650 640 332');animation-delay:1.6s}
+      .c4{offset-path:path('M 1110 565 Q 820 650 640 332');animation-delay:2.4s}
+      .c5{offset-path:path('M 640 110 Q 720 230 640 332');animation-delay:3.2s}
+
+      .impact { position:absolute; left:50%; top:46%; width:80px; height:80px; transform:translate(-50%,-50%); border-radius:50%; border:2px solid var(--frost); opacity:0; z-index:6; }
+      .impact.i1{animation:imp 4.4s ease-out infinite;animation-delay:1s}
+      .impact.i2{animation:imp 4.4s ease-out infinite;animation-delay:2.6s}
+      @keyframes imp { 0%{opacity:.7;transform:translate(-50%,-50%) scale(.4)} 60%,100%{opacity:0;transform:translate(-50%,-50%) scale(3)} }
+
+      /* counter chip */
+      .counter { position:absolute; left:50%; top:72%; transform:translateX(-50%); z-index:16; text-align:center; animation: cfade var(--dur) ease-in-out infinite; }
+      .counter .n { font-size:30px; font-weight:600; color:#fff; letter-spacing:.01em; }
+      .counter .l { font-size:11px; font-weight:600; color:rgba(255,255,255,.7); letter-spacing:.22em; }
+      @keyframes cfade { 0%,30%{opacity:0} 38%,72%{opacity:1} 80%,100%{opacity:0} }
+
+      /* ---------- kinetic text (Cormorant deblur) ---------- */
+      .scenes { position:absolute; inset:0; z-index:17; display:flex; align-items:flex-end; justify-content:center; text-align:center; pointer-events:none; padding-bottom:9vh; }
+      .scene { position:absolute; bottom:9vh; opacity:0; }
+      .scene h1 { font-size:clamp(40px,6.2vw,86px); font-weight:300; line-height:1; letter-spacing:-.01em; color:#fff; text-shadow:0 12px 50px rgba(0,0,0,.6); }
+      .scene p { margin-top:16px; font-size:clamp(14px,1.5vw,20px); font-weight:300; color:rgba(255,255,255,.82); text-shadow:0 4px 24px rgba(0,0,0,.6); }
+      .it { font-style:italic; }
+      .cy { color:var(--frost); }
+      .word { display:inline-block; opacity:0; filter: blur(12px); transform:translateY(20px); }
+      .s1{animation:f1 var(--dur) infinite} .s2{animation:f2 var(--dur) infinite} .s3{animation:f3 var(--dur) infinite} .s4{animation:f4 var(--dur) infinite}
+      @keyframes f1 {0%{opacity:0}2%,18%{opacity:1}22%{opacity:0}100%{opacity:0}}
+      @keyframes f2 {0%,24%{opacity:0}28%,44%{opacity:1}48%{opacity:0}100%{opacity:0}}
+      @keyframes f3 {0%,50%{opacity:0}54%,74%{opacity:1}78%{opacity:0}100%{opacity:0}}
+      @keyframes f4 {0%,80%{opacity:0}84%,99%{opacity:1}100%{opacity:0}}
+      .s1 .word{animation:w1 var(--dur) infinite} .s2 .word{animation:w2 var(--dur) infinite} .s3 .word{animation:w3 var(--dur) infinite} .s4 .word{animation:w4 var(--dur) infinite}
+      @keyframes w1 {0%,2%{opacity:0;filter:blur(12px);transform:translateY(20px)}7%,18%{opacity:1;filter:blur(0);transform:none}22%,100%{opacity:0}}
+      @keyframes w2 {0%,25%{opacity:0;filter:blur(12px);transform:translateY(20px)}30%,44%{opacity:1;filter:blur(0);transform:none}48%,100%{opacity:0}}
+      @keyframes w3 {0%,51%{opacity:0;filter:blur(12px);transform:translateY(20px)}56%,74%{opacity:1;filter:blur(0);transform:none}78%,100%{opacity:0}}
+      @keyframes w4 {0%,81%{opacity:0;filter:blur(12px);transform:scale(.92)}85%,99%{opacity:1;filter:blur(0);transform:none}100%{opacity:0}}
+      .word:nth-child(1){animation-timing-function:var(--out);animation-delay:0s}
+      .word:nth-child(2){animation-timing-function:var(--out);animation-delay:.12s}
+      .word:nth-child(3){animation-timing-function:var(--out);animation-delay:.24s}
+      .word:nth-child(4){animation-timing-function:var(--out);animation-delay:.36s}
+
+      .kicker{display:inline-block;margin-bottom:18px;padding:7px 16px;border-radius:999px;background:rgba(106,240,255,.14);border:1px solid rgba(106,240,255,.45);color:var(--frost);font-weight:600;font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+      .logo{font-size:clamp(56px,8.5vw,110px);font-weight:300;letter-spacing:-.02em;color:#fff;position:relative}
+      .tag{margin-top:6px;font-size:clamp(16px,1.7vw,22px);font-style:italic;font-weight:300;color:rgba(255,255,255,.78)}
+      .cta{margin-top:26px;display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--ink);font-weight:500;font-size:13px;letter-spacing:.18em;text-transform:uppercase;padding:15px 28px;border-radius:999px;box-shadow:0 16px 40px rgba(0,0,0,.45)}
+
+      .scribble { position:absolute; left:50%; bottom:-16px; width:min(340px,80%); transform:translateX(-50%); }
+      .scribble path { fill:none; stroke:var(--frost); stroke-width:2.4; stroke-linecap:round; stroke-dasharray:760; stroke-dashoffset:760; }
+      .s4 .scribble path { animation: draw 1.6s var(--out) .5s forwards; }
+      @keyframes draw { to { stroke-dashoffset:0; } }
+
+      .scrollcue { position:absolute; left:50%; bottom:4%; transform:translateX(-50%); z-index:25; font-size:10px; font-weight:600; letter-spacing:.26em; text-transform:uppercase; color:rgba(255,255,255,.6); animation: cuebob 2.6s ease-in-out infinite; }
+      @keyframes cuebob { 50%{ transform:translateX(-50%) translateY(6px); } }
+
+      .bar{position:fixed;bottom:16px;right:16px;display:flex;gap:10px;z-index:60}
+      .bar button{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.22);padding:8px 16px;border-radius:999px;font-weight:600;cursor:pointer;font-family:inherit;backdrop-filter:blur(6px)}
+      body.embed .bar { display:none; }
+
+      @media (prefers-reduced-motion: reduce){*{animation:none!important}.scene .word{opacity:1;filter:none;transform:none}.scribble path{stroke-dashoffset:0}.scene:not(.s4){display:none}}
+    </style>
+  </head>
+  <body>
+    <script>if (/[?#&]embed/.test(location.search + location.hash)) document.body.classList.add('embed');</script>
+    <div class="stage" id="stage">
+      <div class="stars" id="stars"></div>
+
+      <!-- flight arcs -->
+      <svg class="routes" viewBox="0 0 1280 720" preserveAspectRatio="none">
+        <path class="arc" d="M 150 170 Q 420 120 640 332" />
+        <path class="arc" d="M 1130 175 Q 840 120 640 332" />
+        <path class="arc" d="M 175 560 Q 440 650 640 332" />
+        <path class="arc" d="M 1110 565 Q 820 650 640 332" />
+        <path class="arc" d="M 640 110 Q 720 230 640 332" />
+      </svg>
+
+      <!-- country pins at the edges where the flight arcs begin (like Concept 1's globe) -->
+      <div id="pins"></div>
+
+      <!-- product cards riding arcs -->
+      <div id="cards"></div>
+
+      <!-- live counter -->
+      <div class="counter">
+        <div class="n"><span id="cnum">0</span></div>
+        <div class="l" id="counterLabel">PARCELS DELIVERED WORLDWIDE</div>
+      </div>
+
+      <!-- kinetic deblur text -->
+      <div class="scenes" id="scenes"></div>
+
+      <div class="scrim"></div>
+      <div class="vignette"></div>
+      <div class="seam"></div>
+    </div>
+
+    <div class="bar">
+      <button onclick="replay()">↻ Replay</button>
+      <button onclick="navigator.clipboard.writeText(location.href)">Copy link</button>
+    </div>
+
+    <script>
+      const CONFIG = {
+        countries: [
+          { flag: '🇺🇸', name: 'USA' },
+          { flag: '🇩🇪', name: 'Germany' },
+          { flag: '🇨🇳', name: 'China' },
+          { flag: '🇪🇺', name: 'Europe' },
+          { flag: '🇨🇾', name: 'Cyprus' },
+        ],
+        products: [
+          { em: '👟', label: 'Sneakers' },
+          { em: '📱', label: 'Tech' },
+          { em: '👜', label: 'Fashion' },
+          { em: '💄', label: 'Beauty' },
+          { em: '🎮', label: 'Gaming' },
+        ],
+        counter: { target: 184217, label: 'PARCELS DELIVERED WORLDWIDE' },
+        scenes: [
+          { cls: 's1', html: '<h1><span class="word">Покупай</span> <span class="word">со</span> <span class="word it cy">всего&nbsp;мира.</span></h1>' },
+          { cls: 's2', html: '<h1><span class="word">Любой</span> <span class="word">магазин,</span> <span class="word">любая</span> <span class="word it cy">страна.</span></h1>' },
+          { cls: 's3', html: '<h1><span class="word">Доставим</span> <span class="word">до</span> <span class="word it cy">двери.</span></h1><p>Быстро · с отслеживанием · без хлопот</p>' },
+          { cls: 's4', html: '<span class="kicker word">Первый заказ −20%</span><div class="logo word">Movato<svg class="scribble" viewBox="0 0 340 40"><path d="M6 26 C 90 8, 170 36, 250 18 S 332 10, 334 22"/></svg></div><div class="tag word">Доставка твоей мечты 🚀</div>' },
+        ],
+      };
+      const PIN_SLOTS = [
+        { x: 150, y: 170, d: '.1s' }, { x: 1130, y: 175, d: '.25s' }, { x: 175, y: 560, d: '.4s' },
+        { x: 1110, y: 565, d: '.55s' }, { x: 640, y: 110, d: '.7s' },
+      ];
+      function pct(slots) { return slots.map(s => ({ x: (s.x / 1280) * 100, y: (s.y / 720) * 100, d: s.d })); }
+      function renderConfig(root) {
+        const slots = pct(PIN_SLOTS);
+        root.querySelector('#pins').innerHTML = CONFIG.countries.map((c, i) => {
+          const s = slots[i % slots.length];
+          return `<div class="pin" style="left:${s.x}%;top:${s.y}%;animation-delay:${s.d},0s">${c.flag} ${c.name}<i class="d"></i></div>`;
+        }).join('');
+        root.querySelector('#cards').innerHTML = CONFIG.products.map((p, i) =>
+          `<div class="card c${i + 1}"><span class="em">${p.em}</span>${p.label}</div>`).join('');
+        root.querySelector('#scenes').innerHTML = CONFIG.scenes.map(s => `<div class="scene ${s.cls}">${s.html}</div>`).join('');
+        const cl = root.querySelector('#counterLabel');
+        if (cl) cl.textContent = CONFIG.counter.label;
+      }
+      renderConfig(document);
+
+      function makeStars(el, n) {
+        let h = '';
+        for (let i = 0; i < n; i++) {
+          const x = (Math.sin(i * 12.9898) * 43758.5453 % 1 + 1) % 1 * 100;
+          const y = (Math.sin(i * 78.233) * 12543.987 % 1 + 1) % 1 * 100;
+          const big = i % 8 === 0;
+          const sz = big ? 2.4 : 1.4;
+          const d = ((i * 37) % 40) / 10;
+          h += `<i class="star${big ? ' big' : ''}" style="left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;animation-delay:${d}s"></i>`;
+        }
+        el.innerHTML = h;
+      }
+      makeStars(document.getElementById('stars'), 70);
+
+      const cnum = document.getElementById('cnum');
+      const TARGET = CONFIG.counter.target;
+      function runCounter() {
+        const start = performance.now();
+        function tick(now) {
+          const t = Math.min(1, (now - start) / 2600);
+          const eased = 1 - Math.pow(1 - t, 3);
+          cnum.textContent = Math.floor(eased * TARGET).toLocaleString();
+          if (t < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+      function loopCounter() { setTimeout(runCounter, 6080); setInterval(runCounter, 16000); }
+      loopCounter();
+      setTimeout(runCounter, 200);
+
+      function replay() {
+        const s = document.getElementById('stage');
+        const clone = s.cloneNode(true);
+        s.parentNode.replaceChild(clone, s);
+        makeStars(clone.querySelector('#stars'), 70);
+        renderConfig(clone);
+      }
+    </script>
+  </body>
+</html>
